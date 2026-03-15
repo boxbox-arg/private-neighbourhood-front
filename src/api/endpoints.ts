@@ -1,8 +1,8 @@
 export const API = {
   AUTH: {
-    LOGIN: '/auth/login',
+    LOGIN: '/account/signin',
     LOGOUT: '/auth/logout',
-    ME: '/auth/me',
+    ME: '/account/me',
     REFRESH: '/auth/refresh',
   },
   INVITATIONS: {

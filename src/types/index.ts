@@ -20,13 +20,15 @@ export type ValidationResult = 'VALID' | 'EXPIRED' | 'NO_CAPACITY' | 'INVALID_TO
 
 export interface User {
   id: string
-  name: string
+  name?: string
+  fullName?: string | null
   email: string
   phone?: string
   house_number?: string
-  role: Role
-  status: UserStatus
-  created_at: string
+  role?: string
+  status?: UserStatus
+  isActive?: boolean | null
+  created_at?: string
   updated_at?: string
 }
 

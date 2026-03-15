@@ -24,7 +24,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: (data: LoginRequest) => login(data),
     onSuccess: (res) => {
-      setAuth(res.user, res.access_token)
+      setAuth(res.user, res.token)
       queryClient.setQueryData(['auth', 'me'], res.user)
     },
   })
