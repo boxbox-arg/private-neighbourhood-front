@@ -26,5 +26,6 @@ export const API = {
   },
   ACCESS_LOGS: '/access-logs',
   USERS: '/users',
+  WORKERS: '/workers',
   UPLOAD: '/upload',
 } as const

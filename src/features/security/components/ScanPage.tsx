@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useLogout } from '@/hooks/api/useAuth'
 import { useScanInvitation } from '@/hooks/api/useInvitations'
+import { useScanWorker } from '@/hooks/api/useWorkers'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,12 +15,13 @@ import { useNavigate } from '@tanstack/react-router'
 
 type ScanForm = z.infer<typeof scanSchema>
 
-type ResultState = 'idle' | 'success' | 'error' | 'expired' | 'no_capacity'
+type ResultState = 'idle' | 'success' | 'error' | 'expired' | 'no_capacity' | 'out_of_hours'
 
 export function ScanPage() {
   const [result, setResult] = useState<ResultState>('idle')
   const [message, setMessage] = useState('')
   const scan = useScanInvitation()
+  const scanWorker = useScanWorker()
   const logout = useLogout()
   const navigate = useNavigate()
 
@@ -32,6 +34,7 @@ export function ScanPage() {
     const token = data.qr_token.trim()
     if (!token) return
     setResult('idle')
+
     scan.mutate(
       { qr_token: token, guest_name: data.guest_name },
       {
@@ -47,13 +50,53 @@ export function ScanPage() {
             setResult('no_capacity')
             setMessage('Sin cupo disponible')
           } else {
-            setResult('error')
-            setMessage(res.message ?? 'QR inválido')
+            scanWorker.mutate(
+              { qr_token: token },
+              {
+                onSuccess: (workerRes) => {
+                  if (workerRes.validation_result === 'VALID') {
+                    setResult('success')
+                    setMessage('Acceso permitido - Worker')
+                    form.reset()
+                  } else if (workerRes.validation_result === 'OUT_OF_HOURS') {
+                    setResult('out_of_hours')
+                    setMessage('Worker fuera de horario permitido')
+                  } else {
+                    setResult('error')
+                    setMessage(workerRes.message ?? 'QR inválido')
+                  }
+                },
+                onError: () => {
+                  setResult('error')
+                  setMessage(res.message ?? 'QR inválido')
+                },
+              }
+            )
           }
         },
-        onError: (err: Error) => {
-          setResult('error')
-          setMessage((err as { data?: { message?: string } })?.data?.message ?? err.message)
+        onError: () => {
+          scanWorker.mutate(
+            { qr_token: token },
+            {
+              onSuccess: (workerRes) => {
+                if (workerRes.validation_result === 'VALID') {
+                  setResult('success')
+                  setMessage('Acceso permitido - Worker')
+                  form.reset()
+                } else if (workerRes.validation_result === 'OUT_OF_HOURS') {
+                  setResult('out_of_hours')
+                  setMessage('Worker fuera de horario permitido')
+                } else {
+                  setResult('error')
+                  setMessage(workerRes.message ?? 'QR inválido')
+                }
+              },
+              onError: () => {
+                setResult('error')
+                setMessage('QR no válido')
+              },
+            }
+          )
         },
       }
     )
@@ -108,17 +151,15 @@ export function ScanPage() {
               className={`mt-6 p-4 rounded-lg flex items-center gap-3 ${
                 result === 'success'
                   ? 'bg-green-500/20 text-green-600'
-                  : result === 'expired' || result === 'error'
-                    ? 'bg-red-500/20 text-red-600'
-                    : 'bg-yellow-500/20 text-yellow-600'
+                  : result === 'out_of_hours'
+                    ? 'bg-yellow-500/20 text-yellow-600'
+                    : 'bg-red-500/20 text-red-600'
               }`}
             >
               {result === 'success' && <CheckCircle className="h-8 w-8 shrink-0" />}
-              {(result === 'expired' || result === 'error') && (
+              {result === 'out_of_hours' && <AlertCircle className="h-8 w-8 shrink-0" />}
+              {(result === 'expired' || result === 'error' || result === 'no_capacity') && (
                 <XCircle className="h-8 w-8 shrink-0" />
-              )}
-              {result === 'no_capacity' && (
-                <AlertCircle className="h-8 w-8 shrink-0" />
               )}
               <span className="font-medium">{message}</span>
             </div>

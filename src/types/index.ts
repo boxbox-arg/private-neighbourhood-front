@@ -1,4 +1,18 @@
-export type Role = 'ADMIN' | 'RESIDENT' | 'SECURITY'
+export type Role = 'ADMIN' | 'RESIDENT' | 'SECURITY' | 'SERVICES'
+
+export type WorkerServiceType = 'GARDENER' | 'CLEANER' | 'ELECTRICIAN' | 'PLUMBER' | 'PAINTER' | 'OTHER'
+
+export type WorkerSchedule = {
+  entry_time: string
+  exit_time: string
+}
+
+export interface Worker extends User {
+  role: 'SERVICES'
+  service_type: WorkerServiceType
+  schedule: WorkerSchedule
+  qr_token?: string
+}
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
 export type InvitationStatus = 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'EXHAUSTED'
 export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'

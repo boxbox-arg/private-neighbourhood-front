@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkerRouteImport } from './routes/worker'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SecurityRouteRouteImport } from './routes/_security/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -18,9 +19,15 @@ import { Route as AuthenticatedReservationsRouteImport } from './routes/_authent
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedInvitationsIndexRouteImport } from './routes/_authenticated/invitations/index'
+import { Route as WorkerQrTokenRouteImport } from './routes/worker/qr/$token'
 import { Route as InviteQrTokenRouteImport } from './routes/invite/qr/$token'
 import { Route as AuthenticatedInvitationsNewRouteImport } from './routes/_authenticated/invitations/new'
 
+const WorkerRoute = WorkerRouteImport.update({
+  id: '/worker',
+  path: '/worker',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -66,6 +73,11 @@ const AuthenticatedInvitationsIndexRoute =
     path: '/invitations/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const WorkerQrTokenRoute = WorkerQrTokenRouteImport.update({
+  id: '/qr/$token',
+  path: '/qr/$token',
+  getParentRoute: () => WorkerRoute,
+} as any)
 const InviteQrTokenRoute = InviteQrTokenRouteImport.update({
   id: '/invite/qr/$token',
   path: '/invite/qr/$token',
@@ -81,23 +93,27 @@ const AuthenticatedInvitationsNewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/worker': typeof WorkerRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reservations': typeof AuthenticatedReservationsRoute
   '/scan': typeof SecurityScanRoute
   '/invitations/new': typeof AuthenticatedInvitationsNewRoute
   '/invite/qr/$token': typeof InviteQrTokenRoute
+  '/worker/qr/$token': typeof WorkerQrTokenRoute
   '/invitations/': typeof AuthenticatedInvitationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/worker': typeof WorkerRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reservations': typeof AuthenticatedReservationsRoute
   '/scan': typeof SecurityScanRoute
   '/invitations/new': typeof AuthenticatedInvitationsNewRoute
   '/invite/qr/$token': typeof InviteQrTokenRoute
+  '/worker/qr/$token': typeof WorkerQrTokenRoute
   '/invitations': typeof AuthenticatedInvitationsIndexRoute
 }
 export interface FileRoutesById {
@@ -106,12 +122,14 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_security': typeof SecurityRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/worker': typeof WorkerRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/reservations': typeof AuthenticatedReservationsRoute
   '/_security/scan': typeof SecurityScanRoute
   '/_authenticated/invitations/new': typeof AuthenticatedInvitationsNewRoute
   '/invite/qr/$token': typeof InviteQrTokenRoute
+  '/worker/qr/$token': typeof WorkerQrTokenRoute
   '/_authenticated/invitations/': typeof AuthenticatedInvitationsIndexRoute
 }
 export interface FileRouteTypes {
@@ -119,23 +137,27 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/worker'
     | '/dashboard'
     | '/payments'
     | '/reservations'
     | '/scan'
     | '/invitations/new'
     | '/invite/qr/$token'
+    | '/worker/qr/$token'
     | '/invitations/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/worker'
     | '/dashboard'
     | '/payments'
     | '/reservations'
     | '/scan'
     | '/invitations/new'
     | '/invite/qr/$token'
+    | '/worker/qr/$token'
     | '/invitations'
   id:
     | '__root__'
@@ -143,12 +165,14 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_security'
     | '/login'
+    | '/worker'
     | '/_authenticated/dashboard'
     | '/_authenticated/payments'
     | '/_authenticated/reservations'
     | '/_security/scan'
     | '/_authenticated/invitations/new'
     | '/invite/qr/$token'
+    | '/worker/qr/$token'
     | '/_authenticated/invitations/'
   fileRoutesById: FileRoutesById
 }
@@ -157,11 +181,19 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   SecurityRouteRoute: typeof SecurityRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  WorkerRoute: typeof WorkerRouteWithChildren
   InviteQrTokenRoute: typeof InviteQrTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/worker': {
+      id: '/worker'
+      path: '/worker'
+      fullPath: '/worker'
+      preLoaderRoute: typeof WorkerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -225,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvitationsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/worker/qr/$token': {
+      id: '/worker/qr/$token'
+      path: '/qr/$token'
+      fullPath: '/worker/qr/$token'
+      preLoaderRoute: typeof WorkerQrTokenRouteImport
+      parentRoute: typeof WorkerRoute
+    }
     '/invite/qr/$token': {
       id: '/invite/qr/$token'
       path: '/invite/qr/$token'
@@ -273,11 +312,23 @@ const SecurityRouteRouteWithChildren = SecurityRouteRoute._addFileChildren(
   SecurityRouteRouteChildren,
 )
 
+interface WorkerRouteChildren {
+  WorkerQrTokenRoute: typeof WorkerQrTokenRoute
+}
+
+const WorkerRouteChildren: WorkerRouteChildren = {
+  WorkerQrTokenRoute: WorkerQrTokenRoute,
+}
+
+const WorkerRouteWithChildren =
+  WorkerRoute._addFileChildren(WorkerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   SecurityRouteRoute: SecurityRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  WorkerRoute: WorkerRouteWithChildren,
   InviteQrTokenRoute: InviteQrTokenRoute,
 }
 export const routeTree = rootRouteImport
